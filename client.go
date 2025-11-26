@@ -1,17 +1,15 @@
-package binom
+package binomv2postback
 
 import (
 	"fmt"
 	"net/http"
 	"net/url"
-
-	"github.com/CLi-Ter/binomv2-postback/binom/postback"
 )
 
 type Client interface {
-	SendPostback(clickID string, status *string, payout *float64, events postback.Events) error
-	SendEvents(clickID string, events postback.Events) error
-	SendEvent(clickID string, index uint8, event postback.Event) error
+	SendPostback(clickID string, status *string, payout *float64, events Events) error
+	SendEvents(clickID string, events Events) error
+	SendEvent(clickID string, index uint8, event Event) error
 }
 
 type client struct {
@@ -67,7 +65,7 @@ func (cli *client) sendClick(query string) error {
 }
 
 // SendEvents обновляет клик событиями (конверсия не генерируется)
-func (cli *client) SendEvents(clickID string, events postback.Events) error {
+func (cli *client) SendEvents(clickID string, events Events) error {
 	var q url.Values
 	q.Add("upd_clickid", clickID)
 	q.Add("upd_key", cli.updKey)
@@ -77,8 +75,8 @@ func (cli *client) SendEvents(clickID string, events postback.Events) error {
 
 // SendEvent отправляет (postback.AddEvent) или обновляет (postback.SetEvent)
 // событие с номером 1 <= index <= 30.
-func (cli *client) SendEvent(clickID string, index uint8, event postback.Event) error {
-	events := postback.Events{}
+func (cli *client) SendEvent(clickID string, index uint8, event Event) error {
+	events := Events{}
 	if err := events.Set(index, event, false); err != nil {
 		return err
 	}
@@ -90,7 +88,7 @@ func (cli *client) SendEvent(clickID string, index uint8, event postback.Event) 
 // не обновляет статус конверсии, если status=nil
 // не обнволяет выплату, если payout=nil
 // во время конверсии можно добавить-заменить события через events
-func (cli *client) SendPostback(clickID string, status *string, payout *float64, events postback.Events) error {
+func (cli *client) SendPostback(clickID string, status *string, payout *float64, events Events) error {
 	var q url.Values
 	q.Add("cnv_id", clickID)
 	if status != nil {
