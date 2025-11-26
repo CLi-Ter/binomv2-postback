@@ -10,6 +10,10 @@ type Client interface {
 	SendPostback(clickID string, status *string, payout *float64, events Events) error
 	SendEvents(clickID string, events Events) error
 	SendEvent(clickID string, index uint8, event Event) error
+	AddEvent(clickID string, index uint8) error
+	SubEvent(clickID string, index uint8) error
+	SetupEvent(clickID string, index uint8) error
+	ResetEvent(clickID string, index uint8) error
 }
 
 type client struct {
@@ -18,6 +22,26 @@ type client struct {
 	updKey       string // UPDKey из настроек Binom
 
 	httpClient *http.Client
+}
+
+// AddEvent добавляет к событию index единицу
+func (cli *client) AddEvent(clickID string, index uint8) error {
+	return cli.SendEvent(clickID, index, AddEvent(1))
+}
+
+// SubEvent вычитает у события index единицу
+func (cli *client) SubEvent(clickID string, index uint8) error {
+	return cli.SendEvent(clickID, index, AddEvent(-1))
+}
+
+// SetupEvent устанавливает событие index в единицу
+func (cli *client) SetupEvent(clickID string, index uint8) error {
+	return cli.SendEvent(clickID, index, SetEvent(1))
+}
+
+// ResetEvent устанавливает событие index в ноль
+func (cli *client) ResetEvent(clickID string, index uint8) error {
+	return cli.SendEvent(clickID, index, SetEvent(0))
 }
 
 // NewClient создает новый клиент для Binom-трекера, у которого клик адрес расположен по clickBaseURL.
