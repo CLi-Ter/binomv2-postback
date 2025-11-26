@@ -15,13 +15,16 @@ type Client interface {
 }
 
 type client struct {
-	clickBaseURL string
-	apiKey       string
-	updKey       string
+	clickBaseURL string // Базовый URL для клика в трекере https://binom.tracker/click
+	apiKey       string // API-ключ от Binom
+	updKey       string // UPDKey из настроек Binom
 
 	httpClient *http.Client
 }
 
+// NewClient создает новый клиент для Binom-трекера, у которого клик адрес расположен по clickBaseURL.
+// apiKey - нужен для создания базового клика, т.к. он создается в Binom через API.
+// updKey - нужен для обновления данных по клику (отправка событий), если он установлен в настройках Binom.
 func NewClient(clickBaseURL string, apiKey string, updKey string) Client {
 	return &client{
 		clickBaseURL: clickBaseURL,
@@ -32,20 +35,25 @@ func NewClient(clickBaseURL string, apiKey string, updKey string) Client {
 	}
 }
 
+// sendClick отправляет GET запрос в binom на обработчик клика.
+// Это может быть базовый клик, lp клик, клик по кампании
+// событие (если клик уже существует) или же конверсия.
 func (cli *client) sendClick(query string) error {
+	// Создаем GET HTTP-запрос
 	req, err := http.NewRequest(http.MethodGet, cli.clickBaseURL, nil)
 	if err != nil {
 		return err
 	}
-
+	// добавляем параметры, в зависимости от них Binom понимает, что мы присылаем
 	req.URL.RawQuery = query
-
+	// Отправляем запрос, ожидаем 200-ый ответ
 	response, err := cli.httpClient.Do(req)
 	if err != nil {
 		return err
 	}
 	defer response.Body.Close()
 
+	// Получив ошибку, пытаемся прочесть содержимое ответа и вернуть его как ошибку
 	if response.StatusCode != http.StatusOK {
 		var body []byte
 		_, err = response.Body.Read(body)
@@ -58,6 +66,7 @@ func (cli *client) sendClick(query string) error {
 	return nil
 }
 
+// SendEvents обновляет клик событиями (конверсия не генерируется)
 func (cli *client) SendEvents(clickID string, events postback.Events) error {
 	var q url.Values
 	q.Add("upd_clickid", clickID)
@@ -66,6 +75,8 @@ func (cli *client) SendEvents(clickID string, events postback.Events) error {
 	return cli.sendClick(q.Encode() + "&" + events.URLParams())
 }
 
+// SendEvent отправляет (postback.AddEvent) или обновляет (postback.SetEvent)
+// событие с номером 1 <= index <= 30.
 func (cli *client) SendEvent(clickID string, index uint8, event postback.Event) error {
 	events := postback.Events{}
 	if err := events.Set(index, event, false); err != nil {
@@ -75,6 +86,10 @@ func (cli *client) SendEvent(clickID string, index uint8, event postback.Event) 
 	return cli.SendEvents(clickID, events)
 }
 
+// SendPostback отправляет/обновляет конверсию с cnv_id=clickID.
+// не обновляет статус конверсии, если status=nil
+// не обнволяет выплату, если payout=nil
+// во время конверсии можно добавить-заменить события через events
 func (cli *client) SendPostback(clickID string, status *string, payout *float64, events postback.Events) error {
 	var q url.Values
 	q.Add("cnv_id", clickID)
@@ -88,14 +103,18 @@ func (cli *client) SendPostback(clickID string, status *string, payout *float64,
 	return cli.sendClick(q.Encode() + "&" + events.URLParams())
 }
 
+// SendBaseClick отправляет базовый клик на компанию с ключем campaignKey.
+// если установлен lpbcid=true, то так же устанавливает LPClick.
 func (cli *client) SendBaseClick(campaignKey string, lpbcid bool) error {
-	return nil
+	panic("not implemented. coming in v0.3")
 }
 
-func (cli *client) SetLPClick(clickId string) error {
-	return nil
+// SetLPClick устанавливает клик по лендингу для клика clickID.
+func (cli *client) SetLPClick(clickID string) error {
+	panic("not implemented. coming in v0.3")
 }
 
+// SendClick производит клик по офферу.
 func (cli *client) SendClick() error {
-	return nil
+	panic("not implemented. coming in v0.3")
 }
