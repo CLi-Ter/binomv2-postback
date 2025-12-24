@@ -14,6 +14,7 @@ type Client interface {
 	SubEvent(clickID string, index uint8) error
 	SetupEvent(clickID string, index uint8) error
 	ResetEvent(clickID string, index uint8) error
+	DryRun()
 }
 
 type client struct {
