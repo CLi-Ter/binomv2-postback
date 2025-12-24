@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+
+	"github.com/CLi-Ter/binomv2-postback/binom"
 )
 
 type Client interface {
 	SendPostback(clickID string, status *string, payout *float64, events Events) error
 	SendEvents(clickID string, events Events) error
-	SendEvent(clickID string, index uint8, event Event) error
+	SendEvent(clickID string, event Event) error
 	AddEvent(clickID string, index uint8) error
 	SubEvent(clickID string, index uint8) error
 	SetupEvent(clickID string, index uint8) error
@@ -28,22 +30,22 @@ type client struct {
 
 // AddEvent добавляет к событию index единицу
 func (cli *client) AddEvent(clickID string, index uint8) error {
-	return cli.SendEvent(clickID, index, AddEvent(1))
+	return cli.SendEvent(clickID, binom.AddEvent(int8(index), 1))
 }
 
 // SubEvent вычитает у события index единицу
 func (cli *client) SubEvent(clickID string, index uint8) error {
-	return cli.SendEvent(clickID, index, AddEvent(-1))
+	return cli.SendEvent(clickID, binom.AddEvent(int8(index), -1))
 }
 
 // SetupEvent устанавливает событие index в единицу
 func (cli *client) SetupEvent(clickID string, index uint8) error {
-	return cli.SendEvent(clickID, index, SetEvent(1))
+	return cli.SendEvent(clickID, binom.Event(int8(index), 1))
 }
 
 // ResetEvent устанавливает событие index в ноль
 func (cli *client) ResetEvent(clickID string, index uint8) error {
-	return cli.SendEvent(clickID, index, SetEvent(0))
+	return cli.SendEvent(clickID, binom.Event(int8(index), 0))
 }
 
 // NewClient создает новый клиент для Binom-трекера, у которого клик адрес расположен по clickBaseURL.
@@ -109,9 +111,9 @@ func (cli *client) SendEvents(clickID string, events Events) error {
 
 // SendEvent отправляет (postback.AddEvent) или обновляет (postback.SetEvent)
 // событие с номером 1 <= index <= 30.
-func (cli *client) SendEvent(clickID string, index uint8, event Event) error {
+func (cli *client) SendEvent(clickID string, event Event) error {
 	events := Events{}
-	if err := events.Set(index, event, false); err != nil {
+	if err := events.Set(event, false); err != nil {
 		return err
 	}
 
