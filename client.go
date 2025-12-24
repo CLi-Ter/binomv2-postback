@@ -17,6 +17,7 @@ type Client interface {
 }
 
 type client struct {
+	dryRun       bool
 	clickBaseURL string // Базовый URL для клика в трекере https://binom.tracker/click
 	apiKey       string // API-ключ от Binom
 	updKey       string // UPDKey из настроек Binom
@@ -57,6 +58,10 @@ func NewClient(clickBaseURL string, apiKey string, updKey string) Client {
 	}
 }
 
+func (cli *client) DryRun() {
+	cli.dryRun = true
+}
+
 // sendClick отправляет GET запрос в binom на обработчик клика.
 // Это может быть базовый клик, lp клик, клик по кампании
 // событие (если клик уже существует) или же конверсия.
@@ -68,6 +73,10 @@ func (cli *client) sendClick(query string) error {
 	}
 	// добавляем параметры, в зависимости от них Binom понимает, что мы присылаем
 	req.URL.RawQuery = query
+	if cli.dryRun {
+		fmt.Print("dryRun req:", req.URL.String())
+		return nil
+	}
 	// Отправляем запрос, ожидаем 200-ый ответ
 	response, err := cli.httpClient.Do(req)
 	if err != nil {
