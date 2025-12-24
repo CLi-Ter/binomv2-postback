@@ -90,7 +90,7 @@ func (cli *client) sendClick(query string) error {
 
 // SendEvents обновляет клик событиями (конверсия не генерируется)
 func (cli *client) SendEvents(clickID string, events Events) error {
-	var q url.Values
+	q := make(url.Values)
 	q.Add("upd_clickid", clickID)
 	q.Add("upd_key", cli.updKey)
 
