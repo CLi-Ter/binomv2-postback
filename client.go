@@ -75,7 +75,7 @@ func (cli *client) sendClick(query string) error {
 	// добавляем параметры, в зависимости от них Binom понимает, что мы присылаем
 	req.URL.RawQuery = query
 	if cli.dryRun {
-		fmt.Print("dryRun req:", req.URL.String())
+		fmt.Println("dryRun req URL:", req.URL.String())
 		return nil
 	}
 	// Отправляем запрос, ожидаем 200-ый ответ
