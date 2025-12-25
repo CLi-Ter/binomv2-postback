@@ -126,7 +126,7 @@ func (cli *client) SendEvent(clickID string, event Event) error {
 // не обнволяет выплату, если payout=nil
 // во время конверсии можно добавить-заменить события через events
 func (cli *client) SendPostback(clickID string, status *string, payout *float64, events Events) error {
-	var q url.Values
+	q := make(url.Values)
 	q.Add("cnv_id", clickID)
 	if status != nil {
 		q.Add("cnv_status", *status)
@@ -146,15 +146,15 @@ func (cli *client) UpdatePayout(clickID string, payout float64) error {
 // SendBaseClick отправляет базовый клик на компанию с ключем campaignKey.
 // если установлен lpbcid=true, то так же устанавливает LPClick.
 func (cli *client) SendBaseClick(campaignKey string, lpbcid bool) error {
-	panic("not implemented. coming in v0.3")
+	panic("not implemented. coming in v0.4")
 }
 
 // SetLPClick устанавливает клик по лендингу для клика clickID.
 func (cli *client) SetLPClick(clickID string) error {
-	panic("not implemented. coming in v0.3")
+	panic("not implemented. coming in v0.4")
 }
 
 // SendClick производит клик по офферу.
 func (cli *client) SendClick() error {
-	panic("not implemented. coming in v0.3")
+	panic("not implemented. coming in v0.4")
 }
