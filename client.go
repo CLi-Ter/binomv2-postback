@@ -10,6 +10,7 @@ import (
 
 type Client interface {
 	SendPostback(clickID string, status *string, payout *float64, events Events) error
+	UpdatePayout(clickID string, payout float64) error
 	SendEvents(clickID string, events Events) error
 	SendEvent(clickID string, event Event) error
 	AddEvent(clickID string, index uint8) error
@@ -135,6 +136,11 @@ func (cli *client) SendPostback(clickID string, status *string, payout *float64,
 	}
 
 	return cli.sendClick(q.Encode() + "&" + events.URLParams())
+}
+
+// UpdatePayout implements Client.
+func (cli *client) UpdatePayout(clickID string, payout float64) error {
+	return cli.SendPostback(clickID, nil, &payout, Events{})
 }
 
 // SendBaseClick отправляет базовый клик на компанию с ключем campaignKey.
