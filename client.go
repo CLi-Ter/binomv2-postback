@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/CLi-Ter/binomv2-postback/binom"
 )
@@ -135,7 +136,14 @@ func (cli *client) SendPostback(clickID string, status *string, payout *float64,
 		q.Add("payout", fmt.Sprintf("%f", *payout))
 	}
 
-	return cli.sendClick(q.Encode() + "&" + events.URLParams())
+	var output []string
+	output = append(output, q.Encode())
+	eventsParams := events.URLParams()
+	if eventsParams != "" {
+		output = append(output, eventsParams)
+	}
+
+	return cli.sendClick(strings.Join(output, "&"))
 }
 
 // UpdatePayout implements Client.
