@@ -19,8 +19,8 @@ type Event interface {
 // События в трекере (всего их 30)
 type Events [30]Event
 
-// URLParams преобразует массив Events в строку URL-аргументов
-func (e *Events) URLParams() string {
+// Params возвращает все события как параметры
+func (e *Events) Params() []string {
 	out := []string{}
 	for _, v := range *e {
 		if v == nil {
@@ -29,7 +29,17 @@ func (e *Events) URLParams() string {
 		out = append(out, v.URLParam())
 	}
 
-	return strings.Join(out, "&")
+	return out
+}
+
+// String преобразует массив Events в строку
+func (e *Events) String() string {
+	return strings.Join(e.Params(), ":")
+}
+
+// URLParams преобразует массив Events в строку URL-аргументов
+func (e *Events) URLParams() string {
+	return strings.Join(e.Params(), "&")
 }
 
 // Set проверяет наличие события в массиве и устанавливает конкретное событие index=X
