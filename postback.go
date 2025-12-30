@@ -1,8 +1,11 @@
 package binomv2postback
 
-type Postback struct {
-	ID     string   `json:"cnv_id"`
-	Events Events   `json:"events,omitempty"`
-	Payout *float64 `json:"payout,omitempty"`
-	Status *string  `json:"cnv_status,omitempty"`
+type Postback interface {
+	ClickID() string
+	Payout() string
+	ConversionStatus() string
+	ConversionStatus2() string
+	Events() Events
+	Params() []string
+	String() string
 }
