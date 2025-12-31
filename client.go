@@ -9,16 +9,26 @@ import (
 	"github.com/CLi-Ter/binomv2-postback/binom"
 )
 
-type Client interface {
-	SendPostbackRequest(postback Request) error
-	SendPostback(clickID string, status *string, payout *float64, events Events) error
-	UpdatePayout(clickID string, payout float64) error
-	SendEvents(clickID string, events Events) error
+type EventClient interface {
+	// отправка события
 	SendEvent(clickID string, event Event) error
+	SendEvents(clickID string, events Events) error
+	// работа с счетчиком события
 	AddEvent(clickID string, index uint8) error
 	SubEvent(clickID string, index uint8) error
 	SetupEvent(clickID string, index uint8) error
 	ResetEvent(clickID string, index uint8) error
+}
+
+type PostbackClient interface {
+	SendPostbackRequest(postback Request) error
+	SendPostback(clickID string, status *string, payout *float64, events Events) error
+}
+
+// Client это клиент для трекера Binom позволяющий работать с кликом.
+type Client interface {
+	EventClient
+	PostbackClient
 	DryRun()
 }
 
@@ -159,15 +169,15 @@ func (cli *client) UpdatePayout(clickID string, payout float64) error {
 // SendBaseClick отправляет базовый клик на компанию с ключем campaignKey.
 // если установлен lpbcid=true, то так же устанавливает LPClick.
 func (cli *client) SendBaseClick(campaignKey string, lpbcid bool) error {
-	panic("not implemented. coming in v0.4")
+	panic("not implemented. coming in v0.9")
 }
 
 // SetLPClick устанавливает клик по лендингу для клика clickID.
 func (cli *client) SetLPClick(clickID string) error {
-	panic("not implemented. coming in v0.4")
+	panic("not implemented. coming in v0.9")
 }
 
 // SendClick производит клик по офферу.
 func (cli *client) SendClick() error {
-	panic("not implemented. coming in v0.4")
+	panic("not implemented. coming in v0.9")
 }
