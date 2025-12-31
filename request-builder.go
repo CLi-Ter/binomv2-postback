@@ -11,7 +11,9 @@ type RequestBuilder interface {
 }
 
 func NewRequestBuilder() RequestBuilder {
-	return &requestBuilder{}
+	return &requestBuilder{
+		req: &request{},
+	}
 }
 
 type requestBuilder struct {
