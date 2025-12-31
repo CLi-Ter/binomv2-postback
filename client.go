@@ -10,6 +10,7 @@ import (
 )
 
 type Client interface {
+	SendPostbackRequest(postback Postback) error
 	SendPostback(clickID string, status *string, payout *float64, events Events) error
 	UpdatePayout(clickID string, payout float64) error
 	SendEvents(clickID string, events Events) error
@@ -120,6 +121,14 @@ func (cli *client) SendEvent(clickID string, event Event) error {
 	}
 
 	return cli.SendEvents(clickID, events)
+}
+
+func (cli *client) SendPostbackRequest(postback Postback) error {
+	params := postback.Params()
+	urlParams := []string{"cnv_id=" + postback.ClickID()}
+	urlParams = append(urlParams, params...)
+
+	return cli.sendClick(strings.Join(urlParams, "&"))
 }
 
 // SendPostback отправляет/обновляет конверсию с cnv_id=clickID.
