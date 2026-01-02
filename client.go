@@ -30,6 +30,7 @@ type Client interface {
 	EventClient
 	PostbackClient
 	DryRun()
+	SetLogger(log Logger)
 }
 
 type client struct {
@@ -37,8 +38,13 @@ type client struct {
 	clickBaseURL string // Базовый URL для клика в трекере https://binom.tracker/click
 	apiKey       string // API-ключ от Binom
 	updKey       string // UPDKey из настроек Binom
+	log          Logger
 
 	httpClient *http.Client
+}
+
+func (cli *client) SetLogger(log Logger) {
+	cli.log = log
 }
 
 // AddEvent добавляет к событию index единицу
@@ -89,16 +95,25 @@ func (cli *client) sendClick(query string) error {
 	}
 	// добавляем параметры, в зависимости от них Binom понимает, что мы присылаем
 	req.URL.RawQuery = query
+	if cli.log != nil {
+		cli.log.Infof("Send binom request: %v", req)
+	}
+
 	if cli.dryRun {
 		fmt.Println("dryRun req URL:", req.URL.String())
 		return nil
 	}
+
 	// Отправляем запрос, ожидаем 200-ый ответ
 	response, err := cli.httpClient.Do(req)
 	if err != nil {
 		return err
 	}
 	defer response.Body.Close()
+
+	if cli.log != nil {
+		cli.log.Infof("Binom request: %v Response: %v", req, response)
+	}
 
 	// Получив ошибку, пытаемся прочесть содержимое ответа и вернуть его как ошибку
 	if response.StatusCode != http.StatusOK {
