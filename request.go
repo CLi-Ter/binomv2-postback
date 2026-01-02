@@ -58,6 +58,8 @@ func (p *request) Events() Events {
 
 func (p *request) Params() []string {
 	var output []string
+	// чтобы была поддержка String как в бином, тут не добавляем cnv_id,
+	// он добавляется в URLParam
 	output = append(output, p.clickID)
 	if p.payout != nil {
 		output = append(output, "payout="+p.Payout())
@@ -68,22 +70,20 @@ func (p *request) Params() []string {
 	if p.cnvStatus2 != nil {
 		output = append(output, "cnv_status2="+(*p.cnvStatus2))
 	}
-	for _, ev := range p.events {
-		if ev == nil {
-			continue
-		}
+	output = append(output, p.events.Params()...)
 
-		if ev.Index() > 0 {
-			output = append(output, ev.URLParam())
-		}
-	}
 	return output
 }
 
 func (p *request) URLParam() string {
-	return strings.Join(p.Params(), "&")
+	params := p.Params()
+	// добавляем cnv_id, т.к. в Params() он не устанавливается
+	params[0] = "cnv_id=" + params[0]
+
+	return strings.Join(params, "&")
 }
 
 func (p *request) String() string {
+	// для поддержки формата обновления Binom конверсий
 	return strings.Join(p.Params(), ":")
 }
