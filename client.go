@@ -1,7 +1,9 @@
 package binomv2postback
 
 import (
+	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -21,7 +23,7 @@ type EventClient interface {
 }
 
 type PostbackClient interface {
-	SendPostbackRequest(postback Request) error
+	SendPostbackRequest(postback Request, opts ...sendClickOpt) error
 	SendPostback(clickID string, status *string, payout *float64, events Events) error
 }
 
@@ -84,19 +86,100 @@ func (cli *client) DryRun() {
 	cli.dryRun = true
 }
 
+type sendClickOpt func(cli *client, clkReq *clickReq) error
+
+func OptWithClickBaseURL(clickBaseURL string) sendClickOpt {
+	return func(cli *client, clkReq *clickReq) error {
+		if clkReq != nil && clkReq.log != nil {
+			clkReq.log.Debugf("Setup click request with clickBaseURL option: %s", clickBaseURL)
+		}
+		clkReq.clickBaseURL = clickBaseURL
+
+		return nil
+	}
+}
+
+func OptWithHost(host string) sendClickOpt {
+	return func(cli *client, clkReq *clickReq) error {
+		if clkReq != nil && clkReq.log != nil {
+			clkReq.log.Debugf("setup click request with host option: %s", host)
+		}
+		url, err := url.Parse(clkReq.clickBaseURL)
+		if err != nil {
+			return err
+		}
+		url.Host = host
+
+		clkReq.clickBaseURL = url.String()
+
+		return nil
+	}
+}
+
+func OptWithDryRun(dryRun bool) sendClickOpt {
+	return func(cli *client, clkReq *clickReq) error {
+		if clkReq != nil && clkReq.log != nil {
+			clkReq.log.Debugf("setup click request with dryRun option: %b", dryRun)
+		}
+		clkReq.dryRun = dryRun
+
+		return nil
+	}
+}
+
+func OptDryRun() sendClickOpt {
+	return OptWithDryRun(true)
+}
+
+func OptWithContext(ctx context.Context) sendClickOpt {
+	return func(cli *client, clkReq *clickReq) error {
+		if clkReq != nil && clkReq.log != nil {
+			clkReq.log.Debugf("setup click request with context option: %v", ctx)
+		}
+		clkReq.ctx = ctx
+
+		return nil
+	}
+}
+
+type clickReq struct {
+	method       string
+	clickBaseURL string
+	dryRun       bool
+	body         io.Reader
+	ctx          context.Context
+	log          Logger
+}
+
 // sendClick отправляет GET запрос в binom на обработчик клика.
 // Это может быть базовый клик, lp клик, клик по кампании
 // событие (если клик уже существует) или же конверсия.
-func (cli *client) sendClick(query string) error {
+func (cli *client) sendClick(query string, opt ...sendClickOpt) error {
+	clkReq := &clickReq{
+		method:       http.MethodGet,
+		clickBaseURL: cli.clickBaseURL,
+		dryRun:       cli.dryRun,
+		body:         nil,
+		ctx:          nil,
+		log:          cli.log,
+	}
+	for _, f := range opt {
+		if err := f(cli, clkReq); err != nil {
+			return err
+		}
+	}
 	// Создаем GET HTTP-запрос
-	req, err := http.NewRequest(http.MethodGet, cli.clickBaseURL, nil)
+	req, err := http.NewRequest(clkReq.method, clkReq.clickBaseURL, clkReq.body)
 	if err != nil {
 		return err
 	}
+	if clkReq.ctx != nil {
+		req = req.WithContext(clkReq.ctx)
+	}
 	// добавляем параметры, в зависимости от них Binom понимает, что мы присылаем
 	req.URL.RawQuery = query
-	if cli.log != nil {
-		cli.log.Infof("Send binom request: %v", req)
+	if clkReq.log != nil {
+		clkReq.log.Infof("Send binom request: %v", req)
 	}
 
 	if cli.dryRun {
@@ -111,8 +194,8 @@ func (cli *client) sendClick(query string) error {
 	}
 	defer response.Body.Close()
 
-	if cli.log != nil {
-		cli.log.Infof("Binom request: %v Response: %v", req, response)
+	if clkReq.log != nil {
+		clkReq.log.Infof("Binom request: %v Response: %v", req, response)
 	}
 
 	// Получив ошибку, пытаемся прочесть содержимое ответа и вернуть его как ошибку
@@ -148,7 +231,7 @@ func (cli *client) SendEvent(clickID string, event Event) error {
 	return cli.SendEvents(clickID, events)
 }
 
-func (cli *client) SendPostbackRequest(postback Request) error {
+func (cli *client) SendPostbackRequest(postback Request, opts ...sendClickOpt) error {
 	return cli.sendClick(postback.URLParam())
 }
 
