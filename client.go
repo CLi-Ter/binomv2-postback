@@ -142,7 +142,7 @@ func OptWithContext(ctx context.Context) sendClickOpt {
 	}
 }
 
-type SendClickOptions []clickReq
+type SendClickOptions []sendClickOpt
 
 type clickReq struct {
 	method       string
