@@ -142,6 +142,8 @@ func OptWithContext(ctx context.Context) sendClickOpt {
 	}
 }
 
+type SendClickOptions []clickReq
+
 type clickReq struct {
 	method       string
 	clickBaseURL string
