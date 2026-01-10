@@ -8,6 +8,7 @@ type RequestBuilder interface {
 	WithPayout(payout float64) RequestBuilder
 	WithEvents(events Events) RequestBuilder
 	WithStatus(cnvStatus string, cnvStatus2 ...string) RequestBuilder
+	ClickID() string
 }
 
 func NewRequestBuilder() RequestBuilder {
@@ -16,8 +17,18 @@ func NewRequestBuilder() RequestBuilder {
 	}
 }
 
+func NewRequestBuilderWithClickID(clickID string) RequestBuilder {
+	return &requestBuilder{
+		req: &request{},
+	}
+}
+
 type requestBuilder struct {
 	req *request
+}
+
+func (r *requestBuilder) ClickID() string {
+	return r.req.clickID
 }
 
 // Request method create a copy of builder and apply clickID to it.
