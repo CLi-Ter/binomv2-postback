@@ -234,7 +234,7 @@ func (cli *client) SendEvent(clickID string, event Event) error {
 }
 
 func (cli *client) SendPostbackRequest(postback Request, opts ...sendClickOpt) error {
-	return cli.sendClick(postback.URLParam())
+	return cli.sendClick(postback.URLParam(), opts...)
 }
 
 // SendPostback отправляет/обновляет конверсию с cnv_id=clickID.
