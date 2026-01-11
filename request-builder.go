@@ -19,7 +19,9 @@ func NewRequestBuilder() RequestBuilder {
 
 func NewRequestBuilderWithClickID(clickID string) RequestBuilder {
 	return &requestBuilder{
-		req: &request{},
+		req: &request{
+			clickID: clickID,
+		},
 	}
 }
 
