@@ -59,7 +59,7 @@ func (ev binomEvent) Header() (string, int8) {
 	t := "event"
 	fb := int8(ev[0])
 
-	if fb&0x1 == 0x1 {
+	if hasBit(fb, 7) {
 		t = "add_event"
 	}
 	i := clearBit(fb, 7)
@@ -82,6 +82,11 @@ func setBit(n int8, pos uint) int8 {
 
 func clearBit(n int8, pos uint) int8 {
 	return n & ^(1 << pos)
+}
+
+func hasBit(n int8, pos uint) bool {
+	mask := int8(1 << pos)
+	return n&mask != 0
 }
 
 func (ev *binomEvent) setHeader(t string, i int8) {
