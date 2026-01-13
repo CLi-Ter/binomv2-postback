@@ -184,7 +184,7 @@ func (cli *client) sendClick(query string, opt ...sendClickOpt) error {
 		clkReq.log.Infof("Send binom request: %v", req)
 	}
 
-	if cli.dryRun {
+	if clkReq.dryRun {
 		fmt.Println("dryRun req URL:", req.URL.String())
 		return nil
 	}
