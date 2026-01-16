@@ -13,18 +13,18 @@ import (
 
 type EventClient interface {
 	// отправка события
-	SendEvent(clickID string, event Event) error
-	SendEvents(clickID string, events Events) error
+	SendEvent(clickID string, event Event, opts ...sendClickOpt) error
+	SendEvents(clickID string, events Events, opts ...sendClickOpt) error
 	// работа с счетчиком события
-	AddEvent(clickID string, index uint8) error
-	SubEvent(clickID string, index uint8) error
-	SetupEvent(clickID string, index uint8) error
-	ResetEvent(clickID string, index uint8) error
+	AddEvent(clickID string, index uint8, opts ...sendClickOpt) error
+	SubEvent(clickID string, index uint8, opts ...sendClickOpt) error
+	SetupEvent(clickID string, index uint8, opts ...sendClickOpt) error
+	ResetEvent(clickID string, index uint8, opts ...sendClickOpt) error
 }
 
 type PostbackClient interface {
 	SendPostbackRequest(postback Request, opts ...sendClickOpt) error
-	SendPostback(clickID string, status *string, payout *float64, events Events) error
+	SendPostback(clickID string, status *string, payout *float64, events Events, opts ...sendClickOpt) error
 }
 
 // Client это клиент для трекера Binom позволяющий работать с кликом.
@@ -50,23 +50,23 @@ func (cli *client) SetLogger(log Logger) {
 }
 
 // AddEvent добавляет к событию index единицу
-func (cli *client) AddEvent(clickID string, index uint8) error {
-	return cli.SendEvent(clickID, binom.AddEvent(int8(index), 1))
+func (cli *client) AddEvent(clickID string, index uint8, opts ...sendClickOpt) error {
+	return cli.SendEvent(clickID, binom.AddEvent(int8(index), 1), opts...)
 }
 
 // SubEvent вычитает у события index единицу
-func (cli *client) SubEvent(clickID string, index uint8) error {
-	return cli.SendEvent(clickID, binom.AddEvent(int8(index), -1))
+func (cli *client) SubEvent(clickID string, index uint8, opts ...sendClickOpt) error {
+	return cli.SendEvent(clickID, binom.AddEvent(int8(index), -1), opts...)
 }
 
 // SetupEvent устанавливает событие index в единицу
-func (cli *client) SetupEvent(clickID string, index uint8) error {
-	return cli.SendEvent(clickID, binom.Event(int8(index), 1))
+func (cli *client) SetupEvent(clickID string, index uint8, opts ...sendClickOpt) error {
+	return cli.SendEvent(clickID, binom.Event(int8(index), 1), opts...)
 }
 
 // ResetEvent устанавливает событие index в ноль
-func (cli *client) ResetEvent(clickID string, index uint8) error {
-	return cli.SendEvent(clickID, binom.Event(int8(index), 0))
+func (cli *client) ResetEvent(clickID string, index uint8, opts ...sendClickOpt) error {
+	return cli.SendEvent(clickID, binom.Event(int8(index), 0), opts...)
 }
 
 // NewClient создает новый клиент для Binom-трекера, у которого клик адрес расположен по clickBaseURL.
@@ -214,23 +214,23 @@ func (cli *client) sendClick(query string, opt ...sendClickOpt) error {
 }
 
 // SendEvents обновляет клик событиями (конверсия не генерируется)
-func (cli *client) SendEvents(clickID string, events Events) error {
+func (cli *client) SendEvents(clickID string, events Events, opts ...sendClickOpt) error {
 	q := make(url.Values)
 	q.Add("upd_clickid", clickID)
 	q.Add("upd_key", cli.updKey)
 
-	return cli.sendClick(q.Encode() + "&" + events.URLParams())
+	return cli.sendClick(q.Encode()+"&"+events.URLParams(), opts...)
 }
 
 // SendEvent отправляет (postback.AddEvent) или обновляет (postback.SetEvent)
 // событие с номером 1 <= index <= 30.
-func (cli *client) SendEvent(clickID string, event Event) error {
+func (cli *client) SendEvent(clickID string, event Event, opts ...sendClickOpt) error {
 	events := Events{}
 	if err := events.Set(event, false); err != nil {
 		return err
 	}
 
-	return cli.SendEvents(clickID, events)
+	return cli.SendEvents(clickID, events, opts...)
 }
 
 func (cli *client) SendPostbackRequest(postback Request, opts ...sendClickOpt) error {
@@ -241,7 +241,7 @@ func (cli *client) SendPostbackRequest(postback Request, opts ...sendClickOpt) e
 // не обновляет статус конверсии, если status=nil
 // не обнволяет выплату, если payout=nil
 // во время конверсии можно добавить-заменить события через events
-func (cli *client) SendPostback(clickID string, status *string, payout *float64, events Events) error {
+func (cli *client) SendPostback(clickID string, status *string, payout *float64, events Events, opts ...sendClickOpt) error {
 	q := make(url.Values)
 	q.Add("cnv_id", clickID)
 	if status != nil {
@@ -258,7 +258,7 @@ func (cli *client) SendPostback(clickID string, status *string, payout *float64,
 		output = append(output, eventsParams)
 	}
 
-	return cli.sendClick(strings.Join(output, "&"))
+	return cli.sendClick(strings.Join(output, "&"), opts...)
 }
 
 // UpdatePayout implements Client.
