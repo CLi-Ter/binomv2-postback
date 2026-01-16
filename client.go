@@ -37,9 +37,9 @@ type Client interface {
 
 type client struct {
 	dryRun       bool
-	clickBaseURL string // Базовый URL для клика в трекере https://binom.tracker/click
-	apiKey       string // API-ключ от Binom
-	updKey       string // UPDKey из настроек Binom
+	clickBaseURL string  // Базовый URL для клика в трекере https://binom.tracker/click
+	apiKey       string  // API-ключ от Binom
+	updKey       *string // UPDKey из настроек Binom
 	log          Logger
 
 	httpClient *http.Client
@@ -73,10 +73,14 @@ func (cli *client) ResetEvent(clickID string, index uint8, opts ...sendClickOpt)
 // apiKey - нужен для создания базового клика, т.к. он создается в Binom через API.
 // updKey - нужен для обновления данных по клику (отправка событий), если он установлен в настройках Binom.
 func NewClient(clickBaseURL string, apiKey string, updKey string) Client {
+	var uk *string
+	if updKey != "" {
+		uk = &updKey
+	}
 	return &client{
 		clickBaseURL: clickBaseURL,
 		apiKey:       apiKey,
-		updKey:       updKey,
+		updKey:       uk,
 
 		httpClient: &http.Client{},
 	}
@@ -217,7 +221,9 @@ func (cli *client) sendClick(query string, opt ...sendClickOpt) error {
 func (cli *client) SendEvents(clickID string, events Events, opts ...sendClickOpt) error {
 	q := make(url.Values)
 	q.Add("upd_clickid", clickID)
-	q.Add("upd_key", cli.updKey)
+	if cli.updKey != nil {
+		q.Add("upd_key", *cli.updKey)
+	}
 
 	return cli.sendClick(q.Encode()+"&"+events.URLParams(), opts...)
 }
