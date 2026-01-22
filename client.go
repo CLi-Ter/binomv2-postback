@@ -36,11 +36,12 @@ type Client interface {
 }
 
 type client struct {
-	dryRun       bool
-	clickBaseURL string  // Базовый URL для клика в трекере https://binom.tracker/click
-	apiKey       string  // API-ключ от Binom
-	updKey       *string // UPDKey из настроек Binom
-	log          Logger
+	dryRun               bool
+	clickBaseURL         string  // Базовый URL для клика в трекере https://binom.tracker/click
+	apiKey               string  // API-ключ от Binom
+	updKey               *string // UPDKey из настроек Binom
+	log                  Logger
+	dontSendEmptyUpdates bool
 
 	httpClient *http.Client
 }
@@ -81,6 +82,8 @@ func NewClient(clickBaseURL string, apiKey string, updKey string) Client {
 		clickBaseURL: clickBaseURL,
 		apiKey:       apiKey,
 		updKey:       uk,
+
+		dontSendEmptyUpdates: true,
 
 		httpClient: &http.Client{},
 	}
@@ -219,13 +222,22 @@ func (cli *client) sendClick(query string, opt ...sendClickOpt) error {
 
 // SendEvents обновляет клик событиями (конверсия не генерируется)
 func (cli *client) SendEvents(clickID string, events Events, opts ...sendClickOpt) error {
+	eventParams := events.URLParams()
+	// не посылать пустые события !!!
+	if cli.dontSendEmptyUpdates {
+		if eventParams == "" {
+			cli.log.Debugf("SendEvents>cli.dontSendEmptyUpdates: empty update")
+			return nil
+		}
+	}
+
 	q := make(url.Values)
 	q.Add("upd_clickid", clickID)
 	if cli.updKey != nil {
 		q.Add("upd_key", *cli.updKey)
 	}
 
-	return cli.sendClick(q.Encode()+"&"+events.URLParams(), opts...)
+	return cli.sendClick(q.Encode()+"&"+eventParams, opts...)
 }
 
 // SendEvent отправляет (postback.AddEvent) или обновляет (postback.SetEvent)
