@@ -14,6 +14,7 @@ type Request interface {
 	Params() []string
 	URLParam() string
 	String() string
+	IsConversion() bool
 }
 
 type request struct {
@@ -21,6 +22,7 @@ type request struct {
 	payout     *float64
 	cnvStatus  *string
 	cnvStatus2 *string
+	isCnv      bool
 	events     Events
 }
 
@@ -56,6 +58,15 @@ func (p *request) Events() Events {
 	return p.events
 }
 
+func (p *request) IsConversion() bool {
+	// Это конверсия - если это прописано явно в запросе, есть какой-то статус или payout.
+	if p.isCnv || p.cnvStatus != nil || p.cnvStatus2 != nil || p.payout != nil {
+		return true
+	}
+
+	return false
+}
+
 func (p *request) Params() []string {
 	var output []string
 	// чтобы была поддержка String как в бином, тут не добавляем cnv_id,
@@ -78,6 +89,7 @@ func (p *request) Params() []string {
 func (p *request) URLParam() string {
 	params := p.Params()
 	// добавляем cnv_id, т.к. в Params() он не устанавливается
+	// если это конверсия, то ставим cnv_id, если
 	params[0] = "cnv_id=" + params[0]
 
 	return strings.Join(params, "&")

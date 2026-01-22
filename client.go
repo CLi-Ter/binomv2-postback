@@ -240,6 +240,11 @@ func (cli *client) SendEvent(clickID string, event Event, opts ...sendClickOpt) 
 }
 
 func (cli *client) SendPostbackRequest(postback Request, opts ...sendClickOpt) error {
+	// если это не конверсия, то отправляем через SendEvents, чтобы не триггерить postback в биноме
+	if !postback.IsConversion() {
+		return cli.SendEvents(postback.ClickID(), postback.Events(), opts...)
+	}
+
 	return cli.sendClick(postback.URLParam(), opts...)
 }
 
