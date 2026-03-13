@@ -8,7 +8,11 @@ type RequestBuilder interface {
 	WithPayout(payout float64) RequestBuilder
 	WithEvents(events Events) RequestBuilder
 	WithStatus(cnvStatus string, cnvStatus2 ...string) RequestBuilder
+	WithPostbackMode(mode string) RequestBuilder
+	DropStatus(keepPrimary bool) RequestBuilder
+	DropConversion() RequestBuilder
 	ClickID() string
+	Mode() string
 }
 
 func NewRequestBuilder() RequestBuilder {
@@ -26,14 +30,21 @@ func NewRequestBuilderWithClickID(clickID string) RequestBuilder {
 }
 
 type requestBuilder struct {
-	req *request
+	req  *request
+	mode string
 }
 
+// Return request clickID
 func (r *requestBuilder) ClickID() string {
 	return r.req.clickID
 }
 
-// Request method create a copy of builder and apply clickID to it.
+// Mode returns string name of postback mode
+func (r *requestBuilder) Mode() string {
+	return r.mode
+}
+
+// Request method create a copy of builder and apply clickID to it
 func (r *requestBuilder) Request(clickID string) Request {
 	req := *r.req
 	req.clickID = clickID
@@ -60,6 +71,35 @@ func (r *requestBuilder) WithStatus(cnvStatus string, cnvStatus2 ...string) Requ
 		cnvStatuses := strings.Join(cnvStatus2, "_")
 		r.req.cnvStatus2 = &cnvStatuses
 	}
+
+	return r
+}
+
+// WithPostbackMode set information to builder about mode,
+// that can be requested later with Mode() method when processing it
+func (r *requestBuilder) WithPostbackMode(mode string) RequestBuilder {
+	r.mode = mode
+	return r
+}
+
+// DropStatus clear request data about conversion status.
+// if keepPrimary is true it clear only secondary conversion status
+func (r *requestBuilder) DropStatus(keepPrimary bool) RequestBuilder {
+	if !keepPrimary {
+		r.req.cnvStatus = nil
+	}
+	r.req.cnvStatus2 = nil
+
+	return r
+}
+
+// DropConversion clear all request data about converion.
+// Data contains conversion statuses, payout and isCnv flag.
+// After that action postback will contains only clickid and events data
+func (r *requestBuilder) DropConversion() RequestBuilder {
+	r.DropStatus(false)
+	r.req.payout = nil
+	r.req.isCnv = false
 
 	return r
 }
