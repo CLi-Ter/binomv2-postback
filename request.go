@@ -10,20 +10,26 @@ type Request interface {
 	Payout() string
 	ConversionStatus() string
 	ConversionStatus2() string
+	Currency() string
 	Events() Events
 	Params() []string
 	URLParam() string
 	String() string
 	IsConversion() bool
+	IsDisabledPostback() bool
+	ToOffer() string
 }
 
 type request struct {
-	clickID    string
-	payout     *float64
-	cnvStatus  *string
-	cnvStatus2 *string
-	isCnv      bool
-	events     Events
+	clickID         string
+	payout          *float64
+	cnvStatus       *string
+	cnvStatus2      *string
+	currency        *string
+	isCnv           bool
+	events          Events
+	disablePostback bool
+	toOffer         *uint64
 }
 
 func (p *request) ClickID() string {
@@ -54,6 +60,14 @@ func (p *request) ConversionStatus2() string {
 	return *p.cnvStatus2
 }
 
+func (p *request) Currency() string {
+	if p.currency == nil {
+		return ""
+	}
+
+	return *p.currency
+}
+
 func (p *request) Events() Events {
 	return p.events
 }
@@ -67,6 +81,18 @@ func (p *request) IsConversion() bool {
 	return false
 }
 
+func (p *request) IsDisabledPostback() bool {
+	return p.disablePostback
+}
+
+func (p *request) ToOffer() string {
+	if p.toOffer == nil {
+		return ""
+	}
+
+	return strconv.FormatUint(*p.toOffer, 10)
+}
+
 func (p *request) Params() []string {
 	var output []string
 	// чтобы была поддержка String как в бином, тут не добавляем cnv_id,
@@ -75,13 +101,31 @@ func (p *request) Params() []string {
 	if p.payout != nil {
 		output = append(output, "payout="+p.Payout())
 	}
+	if p.currency != nil {
+		output = append(output, "cnv_currency="+p.Currency())
+	}
 	if p.cnvStatus != nil {
-		output = append(output, "cnv_status="+(*p.cnvStatus))
+		output = append(output, "cnv_status="+p.ConversionStatus())
 	}
 	if p.cnvStatus2 != nil {
-		output = append(output, "cnv_status2="+(*p.cnvStatus2))
+		output = append(output, "cnv_status2="+p.ConversionStatus2())
 	}
+	// добавляем события
 	output = append(output, p.events.Params()...)
+
+	// TODO: Следующие 2 параметра возможно будут перенесены в URLParam.
+	// Мне пока не понятно поведение binom, если отправить в postbackManager строки,
+	// которые вернет метод String()
+	// ------------------------------>
+	// записать клик на оффер N (N - порядковый номер оффера в пути).
+	if p.toOffer != nil {
+		output = append(output, "to_offer="+p.ToOffer())
+	}
+	// устанавливаем флаг не отсылать постбек, если включена опция
+	if p.disablePostback {
+		output = append(output, "disable_postback=1")
+	}
+	// <------------------------------
 
 	return output
 }
