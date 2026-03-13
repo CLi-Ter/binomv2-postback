@@ -82,6 +82,27 @@ func (r *requestBuilder) WithPostbackMode(mode string) RequestBuilder {
 	return r
 }
 
+// DisablePostback turns off futured S2S postback for this postback
+func (r *requestBuilder) DisablePostback() RequestBuilder {
+	r.req.disablePostback = true
+	return r
+}
+
+// WithCurrency setup conversion currency
+func (r *requestBuilder) WithCurrency(currency string) RequestBuilder {
+	// TODO: validate currency
+	r.req.currency = &currency
+
+	return r
+}
+
+// WithToOffer setup offer N from Path to set click on
+func (r *requestBuilder) WithToOffer(toOffer uint64) RequestBuilder {
+	r.req.toOffer = &toOffer
+
+	return r
+}
+
 // DropStatus clear request data about conversion status.
 // if keepPrimary is true it clear only secondary conversion status
 func (r *requestBuilder) DropStatus(keepPrimary bool) RequestBuilder {
@@ -100,6 +121,8 @@ func (r *requestBuilder) DropConversion() RequestBuilder {
 	r.DropStatus(false)
 	r.req.payout = nil
 	r.req.isCnv = false
+	r.req.currency = nil
+	r.req.toOffer = nil
 
 	return r
 }
