@@ -102,13 +102,13 @@ func (p *request) Params() []string {
 		output = append(output, "payout="+p.Payout())
 	}
 	if p.currency != nil {
-		output = append(output, "cnv_currency="+(*p.currency))
+		output = append(output, "cnv_currency="+p.Currency())
 	}
 	if p.cnvStatus != nil {
-		output = append(output, "cnv_status="+(*p.cnvStatus))
+		output = append(output, "cnv_status="+p.ConversionStatus())
 	}
 	if p.cnvStatus2 != nil {
-		output = append(output, "cnv_status2="+(*p.cnvStatus2))
+		output = append(output, "cnv_status2="+p.ConversionStatus2())
 	}
 	// добавляем события
 	output = append(output, p.events.Params()...)
