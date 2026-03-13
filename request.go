@@ -1,7 +1,6 @@
 package binomv2postback
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 )
@@ -91,7 +90,7 @@ func (p *request) ToOffer() string {
 		return ""
 	}
 
-	return fmt.Sprint(p.toOffer)
+	return strconv.FormatUint(*p.toOffer, 10)
 }
 
 func (p *request) Params() []string {
