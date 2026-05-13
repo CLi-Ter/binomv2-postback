@@ -138,6 +138,14 @@ func OptDryRun() sendClickOpt {
 	return OptWithDryRun(true)
 }
 
+func OptWithPostbackLevel(lvl PostbackLevel) sendClickOpt {
+	return func(cli *client, clkReq *clickReq) error {
+		clkReq.pbLvl = lvl
+
+		return nil
+	}
+}
+
 func OptWithContext(ctx context.Context) sendClickOpt {
 	return func(cli *client, clkReq *clickReq) error {
 		if clkReq != nil && clkReq.log != nil {
@@ -152,12 +160,15 @@ func OptWithContext(ctx context.Context) sendClickOpt {
 type SendClickOptions []sendClickOpt
 
 type clickReq struct {
+	ctx  context.Context
+	log  Logger
+	body io.Reader
+
 	method       string
 	clickBaseURL string
 	dryRun       bool
-	body         io.Reader
-	ctx          context.Context
-	log          Logger
+
+	pbLvl PostbackLevel
 }
 
 // sendClick отправляет GET запрос в binom на обработчик клика.
@@ -177,6 +188,15 @@ func (cli *client) sendClick(query string, opt ...sendClickOpt) error {
 			return err
 		}
 	}
+
+	if !clkReq.pbLvl.CanPostback() {
+		return nil
+	}
+	// TODO: this is all?
+	if clkReq.pbLvl == PB_LVL_NO_TS {
+		query = query + "&disable_postback=1"
+	}
+
 	// Создаем GET HTTP-запрос
 	req, err := http.NewRequest(clkReq.method, clkReq.clickBaseURL, clkReq.body)
 	if err != nil {
