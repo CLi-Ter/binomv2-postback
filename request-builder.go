@@ -11,6 +11,9 @@ type RequestBuilder interface {
 	WithPostbackMode(mode string) RequestBuilder
 	DropStatus(keepPrimary bool) RequestBuilder
 	DropConversion() RequestBuilder
+	DisablePostback() RequestBuilder
+	WithCurrency(currency string) RequestBuilder
+	WithToOffer(toOffer uint64) RequestBuilder
 	ClickID() string
 	Mode() string
 }
