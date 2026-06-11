@@ -2,6 +2,7 @@ package binomv2postback
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -208,7 +209,7 @@ func (cli *client) sendClick(query string, opt ...sendClickOpt) error {
 	// добавляем параметры, в зависимости от них Binom понимает, что мы присылаем
 	req.URL.RawQuery = query
 	if clkReq.log != nil {
-		clkReq.log.Infof("Send binom request: %v", req)
+		clkReq.log.Debugf("Send binom request: %v", req)
 	}
 
 	if clkReq.dryRun {
@@ -227,14 +228,30 @@ func (cli *client) sendClick(query string, opt ...sendClickOpt) error {
 		clkReq.log.Infof("Binom request: %v Response: %v", req, response)
 	}
 
+	var body []byte
+	_, err = response.Body.Read(body)
+	if err != nil {
+		return fmt.Errorf("failed to read response body: %v", err)
+	}
+
 	// Получив ошибку, пытаемся прочесть содержимое ответа и вернуть его как ошибку
 	if response.StatusCode != http.StatusOK {
-		var body []byte
-		_, err = response.Body.Read(body)
-		if err != nil {
-			return fmt.Errorf("failed to read response body: %v", err)
-		}
 		return fmt.Errorf("failed to send request, status code: %d, response %s", response.StatusCode, string(body))
+	}
+
+	// Binom сейчас возвращает 200 даже при ошибках
+	// При ошибках внутри тела ответа status=fail
+	var resp struct {
+		Status  string `json:"status"`
+		Message string `json:"message"`
+	}
+
+	if err := json.Unmarshal(body, &resp); err != nil {
+		return fmt.Errorf("unmarshal response body failed: %v", err)
+	} else {
+		if resp.Status == "fail" {
+			return fmt.Errorf("postback request failed with error: %s", resp.Message)
+		}
 	}
 
 	return nil
