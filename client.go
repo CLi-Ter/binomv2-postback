@@ -246,11 +246,13 @@ func (cli *client) sendClick(query string, opt ...sendClickOpt) error {
 		Message string `json:"message"`
 	}
 
-	if err := json.Unmarshal(body, &resp); err != nil {
-		return fmt.Errorf("unmarshal response body failed: %v", err)
-	} else {
-		if resp.Status == "fail" {
-			return fmt.Errorf("postback request failed with error: %s", resp.Message)
+	if len(body) > 0 { // Проверяем, что тело не пустое
+		if err := json.Unmarshal(body, &resp); err != nil {
+			return fmt.Errorf("unmarshal response body failed: %v", err)
+		} else {
+			if resp.Status == "fail" {
+				return fmt.Errorf("postback request failed with error: %s", resp.Message)
+			}
 		}
 	}
 
