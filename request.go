@@ -18,6 +18,7 @@ type Request interface {
 	IsConversion() bool
 	IsDisabledPostback() bool
 	ToOffer() string
+	SendClickOptions() SendClickOptions
 }
 
 type request struct {
@@ -30,6 +31,7 @@ type request struct {
 	events          Events
 	disablePostback bool
 	toOffer         *uint64
+	sendClickOpts   []sendClickOpt
 }
 
 func (p *request) ClickID() string {
@@ -91,6 +93,10 @@ func (p *request) ToOffer() string {
 	}
 
 	return strconv.FormatUint(*p.toOffer, 10)
+}
+
+func (p *request) SendClickOptions() SendClickOptions {
+	return p.sendClickOpts
 }
 
 func (p *request) Params() []string {

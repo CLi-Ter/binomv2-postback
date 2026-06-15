@@ -18,17 +18,22 @@ type RequestBuilder interface {
 	Mode() string
 }
 
+func newReq(clickID string) *request {
+	return &request{
+		clickID:       clickID,
+		sendClickOpts: make([]sendClickOpt, 0),
+	}
+}
+
 func NewRequestBuilder() RequestBuilder {
 	return &requestBuilder{
-		req: &request{},
+		req: newReq(""),
 	}
 }
 
 func NewRequestBuilderWithClickID(clickID string) RequestBuilder {
 	return &requestBuilder{
-		req: &request{
-			clickID: clickID,
-		},
+		req: newReq(clickID),
 	}
 }
 
