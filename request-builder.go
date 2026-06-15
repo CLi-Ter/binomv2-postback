@@ -1,12 +1,16 @@
 package binomv2postback
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/CLi-Ter/binomv2-postback/entity"
+)
 
 // RequestBuilder allows you to construct Request interface
 type RequestBuilder interface {
 	Request(clickID string) Request
 	WithPayout(payout float64) RequestBuilder
-	WithEvents(events Events) RequestBuilder
+	WithEvents(events entity.Events) RequestBuilder
 	WithStatus(cnvStatus string, cnvStatus2 ...string) RequestBuilder
 	WithPostbackMode(mode string) RequestBuilder
 	DropStatus(keepPrimary bool) RequestBuilder
@@ -61,7 +65,7 @@ func (r *requestBuilder) Request(clickID string) Request {
 }
 
 // WithEvents add click events to builded Request
-func (r *requestBuilder) WithEvents(events Events) RequestBuilder {
+func (r *requestBuilder) WithEvents(events entity.Events) RequestBuilder {
 	r.req.events = events
 	return r
 }

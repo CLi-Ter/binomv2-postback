@@ -26,7 +26,7 @@ type request struct {
 	cnvStatus2      *string
 	currency        *string
 	isCnv           bool
-	events          Events
+	events          entity.Events
 	disablePostback bool
 	toOffer         *uint64
 	sendClickOpts   []sendClickOpt
@@ -68,7 +68,7 @@ func (p *request) Currency() string {
 	return *p.currency
 }
 
-func (p *request) Events() Events {
+func (p *request) Events() entity.Events {
 	return p.events
 }
 

@@ -10,12 +10,13 @@ import (
 	"strings"
 
 	"github.com/CLi-Ter/binomv2-postback/binom"
+	"github.com/CLi-Ter/binomv2-postback/entity"
 )
 
 type EventClient interface {
 	// отправка события
-	SendEvent(clickID string, event Event, opts ...sendClickOpt) error
-	SendEvents(clickID string, events Events, opts ...sendClickOpt) error
+	SendEvent(clickID string, event entity.Event, opts ...sendClickOpt) error
+	SendEvents(clickID string, events entity.Events, opts ...sendClickOpt) error
 	// работа с счетчиком события
 	AddEvent(clickID string, index uint8, opts ...sendClickOpt) error
 	SubEvent(clickID string, index uint8, opts ...sendClickOpt) error
@@ -25,7 +26,7 @@ type EventClient interface {
 
 type PostbackClient interface {
 	SendPostbackRequest(postback Request, opts ...sendClickOpt) error
-	SendPostback(clickID string, status *string, payout *float64, events Events, opts ...sendClickOpt) error
+	SendPostback(clickID string, status *string, payout *float64, events entity.Events, opts ...sendClickOpt) error
 }
 
 // Client это клиент для трекера Binom позволяющий работать с кликом.
@@ -260,7 +261,7 @@ func (cli *client) sendClick(query string, opt ...sendClickOpt) error {
 }
 
 // SendEvents обновляет клик событиями (конверсия не генерируется)
-func (cli *client) SendEvents(clickID string, events Events, opts ...sendClickOpt) error {
+func (cli *client) SendEvents(clickID string, events entity.Events, opts ...sendClickOpt) error {
 	eventParams := events.URLParams()
 	// не посылать пустые события !!!
 	if cli.dontSendEmptyUpdates {
@@ -281,8 +282,8 @@ func (cli *client) SendEvents(clickID string, events Events, opts ...sendClickOp
 
 // SendEvent отправляет (postback.AddEvent) или обновляет (postback.SetEvent)
 // событие с номером 1 <= index <= 30.
-func (cli *client) SendEvent(clickID string, event Event, opts ...sendClickOpt) error {
-	events := Events{}
+func (cli *client) SendEvent(clickID string, event entity.Event, opts ...sendClickOpt) error {
+	events := entity.Events{}
 	if err := events.Set(event, false); err != nil {
 		return err
 	}
@@ -303,7 +304,7 @@ func (cli *client) SendPostbackRequest(postback Request, opts ...sendClickOpt) e
 // не обновляет статус конверсии, если status=nil
 // не обнволяет выплату, если payout=nil
 // во время конверсии можно добавить-заменить события через events
-func (cli *client) SendPostback(clickID string, status *string, payout *float64, events Events, opts ...sendClickOpt) error {
+func (cli *client) SendPostback(clickID string, status *string, payout *float64, events entity.Events, opts ...sendClickOpt) error {
 	q := make(url.Values)
 	q.Add("cnv_id", clickID)
 	if status != nil {
@@ -325,7 +326,7 @@ func (cli *client) SendPostback(clickID string, status *string, payout *float64,
 
 // UpdatePayout implements Client.
 func (cli *client) UpdatePayout(clickID string, payout float64) error {
-	return cli.SendPostback(clickID, nil, &payout, Events{})
+	return cli.SendPostback(clickID, nil, &payout, entity.Events{})
 }
 
 // SendBaseClick отправляет базовый клик на компанию с ключем campaignKey.
