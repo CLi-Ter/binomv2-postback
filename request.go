@@ -3,21 +3,19 @@ package binomv2postback
 import (
 	"strconv"
 	"strings"
+
+	"github.com/CLi-Ter/binomv2-postback/entity"
 )
 
 type Request interface {
-	ClickID() string
-	Payout() string
-	ConversionStatus() string
-	ConversionStatus2() string
-	Currency() string
-	Events() Events
+	entity.Postback
+
 	Params() []string
 	URLParam() string
 	String() string
 	IsConversion() bool
 	IsDisabledPostback() bool
-	ToOffer() string
+
 	SendClickOptions() SendClickOptions
 }
 
