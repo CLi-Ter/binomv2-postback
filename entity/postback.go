@@ -17,22 +17,18 @@ type Postback interface {
 	ToOffer() string
 }
 
-func NewPostback(clk click.Click) Postback {
+func NewPostback(clk click.Click, conv Conversion) Postback {
 	return &postback{
-		Click: clk,
+		Click:      clk,
+		Conversion: conv,
 	}
 }
 
 type postback struct {
 	Click       click.Click
 	EventValues Events
-	Values      struct {
-		Payout     *float64
-		Currency   *string
-		CnvStatus  *string
-		CnvStatus2 *string
-		ToOffer    *uint64
-	}
+	Conversion  Conversion
+	toOffer     *uint64
 
 	DisablePostback bool
 }
@@ -46,41 +42,33 @@ func (p *postback) Events() Events {
 }
 
 func (p *postback) Payout() string {
-	if p.Values.Payout == nil {
+	if p.Conversion == nil || p.Conversion.Payout() == nil || !p.Conversion.Payout().HasCurrency() {
 		return ""
 	}
 
-	return strconv.FormatFloat(*p.Values.Payout, 'g', -1, 64)
+	return strconv.FormatFloat(p.Conversion.Payout().Value(), 'g', -1, 64)
 }
 
 func (p *postback) ConversionStatus() string {
-	if p.Values.CnvStatus == nil {
-		return ""
-	}
-
-	return *p.Values.CnvStatus
+	return p.Conversion.Status()
 }
 
 func (p *postback) ConversionStatus2() string {
-	if p.Values.CnvStatus2 == nil {
-		return ""
-	}
-
-	return *p.Values.CnvStatus2
+	return p.Conversion.Status2()
 }
 
 func (p *postback) Currency() string {
-	if p.Values.Currency == nil {
+	if p.Conversion == nil || p.Conversion.Payout() == nil || !p.Conversion.Payout().HasCurrency() {
 		return ""
 	}
 
-	return *p.Values.Currency
+	return p.Conversion.Payout().Currency()
 }
 
 func (p *postback) ToOffer() string {
-	if p.Values.ToOffer == nil {
+	if p.toOffer == nil {
 		return ""
 	}
 
-	return strconv.FormatUint(*p.Values.ToOffer, 10)
+	return strconv.FormatUint(*p.toOffer, 10)
 }
