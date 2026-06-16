@@ -18,6 +18,13 @@ type Event interface {
 	URLParam() string // форматирование значения в виде URL-аргумента
 }
 
+type Events interface {
+	Params() []string
+	String() string
+	URLParams() string
+	Set(ev Event, force bool) error
+}
+
 // Conversion хранит данные по конверсии.
 // Payout - выплата, содержит сумму Value и валюту Currency (по-умолчанию - USD)
 type Conversion interface {

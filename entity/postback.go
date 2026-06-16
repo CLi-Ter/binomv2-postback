@@ -14,7 +14,7 @@ type Postback interface {
 	ConversionStatus() string
 	ConversionStatus2() string
 	Currency() string
-	Events() Events
+	Events() binv2post.Events
 	ToOffer() string
 }
 
@@ -27,7 +27,7 @@ func NewPostback(clk click.Click, conv binv2post.Conversion) Postback {
 
 type postback struct {
 	Click       click.Click
-	EventValues Events
+	EventValues binv2post.Events
 	Conversion  binv2post.Conversion
 	toOffer     *uint64
 
@@ -38,7 +38,7 @@ func (p *postback) ClickID() string {
 	return p.Click.String()
 }
 
-func (p *postback) Events() Events {
+func (p *postback) Events() binv2post.Events {
 	return p.EventValues
 }
 

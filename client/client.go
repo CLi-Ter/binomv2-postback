@@ -28,7 +28,7 @@ type Request interface {
 type EventClient interface {
 	// отправка события
 	SendEvent(clickID string, event bp.Event, opts ...SendClickOpt) error
-	SendEvents(clickID string, events entity.Events, opts ...SendClickOpt) error
+	SendEvents(clickID string, events bp.Events, opts ...SendClickOpt) error
 	// работа с счетчиком события
 	AddEvent(clickID string, index uint8, opts ...SendClickOpt) error
 	SubEvent(clickID string, index uint8, opts ...SendClickOpt) error
@@ -38,5 +38,5 @@ type EventClient interface {
 
 type PostbackClient interface {
 	SendPostbackRequest(postback Request, opts ...SendClickOpt) error
-	SendPostback(clickID string, status *string, payout *float64, events entity.Events, opts ...SendClickOpt) error
+	SendPostback(clickID string, status *string, payout *float64, events bp.Events, opts ...SendClickOpt) error
 }

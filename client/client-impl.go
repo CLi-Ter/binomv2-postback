@@ -153,7 +153,7 @@ func (cli *client) sendClick(query string, opt ...SendClickOpt) error {
 }
 
 // SendEvents обновляет клик событиями (конверсия не генерируется)
-func (cli *client) SendEvents(clickID string, events entity.Events, opts ...SendClickOpt) error {
+func (cli *client) SendEvents(clickID string, events ver2.Events, opts ...SendClickOpt) error {
 	eventParams := events.URLParams()
 	// не посылать пустые события !!!
 	// если опция SendEmptyUpdates не включена,
@@ -179,7 +179,7 @@ func (cli *client) SendEvents(clickID string, events entity.Events, opts ...Send
 // SendEvent отправляет (postback.AddEvent) или обновляет (postback.SetEvent)
 // событие с номером 1 <= index <= 30.
 func (cli *client) SendEvent(clickID string, event ver2.Event, opts ...SendClickOpt) error {
-	events := entity.Events{}
+	events := &Events{}
 	if err := events.Set(event, false); err != nil {
 		return err
 	}
@@ -200,7 +200,7 @@ func (cli *client) SendPostbackRequest(postback Request, opts ...SendClickOpt) e
 // не обновляет статус конверсии, если status=nil
 // не обнволяет выплату, если payout=nil
 // во время конверсии можно добавить-заменить события через events
-func (cli *client) SendPostback(clickID string, status *string, payout *float64, events entity.Events, opts ...SendClickOpt) error {
+func (cli *client) SendPostback(clickID string, status *string, payout *float64, events ver2.Events, opts ...SendClickOpt) error {
 	q := make(url.Values)
 	q.Add("cnv_id", clickID)
 	if status != nil {
@@ -222,7 +222,7 @@ func (cli *client) SendPostback(clickID string, status *string, payout *float64,
 
 // UpdatePayout implements Client.
 func (cli *client) UpdatePayout(clickID string, payout float64) error {
-	return cli.SendPostback(clickID, nil, &payout, entity.Events{})
+	return cli.SendPostback(clickID, nil, &payout, &Events{})
 }
 
 // SendBaseClick отправляет базовый клик на компанию с ключем campaignKey.

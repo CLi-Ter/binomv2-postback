@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/CLi-Ter/binomv2-postback/entity"
+	entity "github.com/CLi-Ter/binomv2-postback"
 )
 
 type request struct {
