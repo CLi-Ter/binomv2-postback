@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/CLi-Ter/binomv2-postback/click"
+	binv2post "github.com/CLi-Ter/binomv2-postback/ver2"
 )
 
 // Postback предназначен для работы со структурами постбеков
@@ -17,7 +18,7 @@ type Postback interface {
 	ToOffer() string
 }
 
-func NewPostback(clk click.Click, conv Conversion) Postback {
+func NewPostback(clk click.Click, conv binv2post.Conversion) Postback {
 	return &postback{
 		Click:      clk,
 		Conversion: conv,
@@ -27,7 +28,7 @@ func NewPostback(clk click.Click, conv Conversion) Postback {
 type postback struct {
 	Click       click.Click
 	EventValues Events
-	Conversion  Conversion
+	Conversion  binv2post.Conversion
 	toOffer     *uint64
 
 	DisablePostback bool
