@@ -1,8 +1,8 @@
 package client
 
 import (
+	binv2post "github.com/CLi-Ter/binomv2-postback"
 	"github.com/CLi-Ter/binomv2-postback/entity"
-	binv2post "github.com/CLi-Ter/binomv2-postback/ver2"
 )
 
 type EventClient interface {

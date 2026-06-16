@@ -1,24 +1,48 @@
 package binomv2postback
 
-type PostbackLevel uint8
-
 const (
-	PB_LVL_ALL      PostbackLevel = iota // postback to tracker and traffic source
-	PB_LVL_NO_TS                         //
-	PB_LVL_DISABLED                      // disable postback (dryRun?)
+	PAYOUT_CURRENCY_GEL = "gel"
+	PAYOUT_CURRENCY_EUR = "eur"
+	PAYOUT_CURRENCY_USD = "usd"
+	PAYOUT_CURRENCY_RUB = "rub"
 )
 
-func (lvl PostbackLevel) CanPostback() bool {
-	return lvl < PB_LVL_DISABLED
+// Event представляет собой событие в биноме. https://docs.binom.org/events-v2.php
+// всего событий в BinomV2 от 1 до 30 далее X. Их значение можно обновлять SetEvent или складывать AddEvent.
+// в URL события имеют вид eventX=INT или add_eventX=INT
+type Event interface {
+	Type() string     // тип значения add_event или event
+	Value() int64     // значение события
+	Index() int8      // номер события в трекере
+	Name() string     // имя URL-аргумента
+	URLParam() string // форматирование значения в виде URL-аргумента
 }
 
-func (lvl PostbackLevel) String() string {
-	switch lvl {
-	case PB_LVL_NO_TS:
-		return "traffic_source_postback_disabled"
-	case PB_LVL_DISABLED:
-		return "postback_disabled"
-	default:
-		return "postback_all"
-	}
+// Conversion хранит данные по конверсии.
+// Payout - выплата, содержит сумму Value и валюту Currency (по-умолчанию - USD)
+type Conversion interface {
+	Payout() Payout
+	Status() string
+	Status2() string
+	HasStatus() bool
+	HasStatus2() bool
+	// ToOffer() string ??
+}
+
+type Payout interface {
+	HasValue() bool
+	HasCurrency() bool
+	Value() float64
+	Currency() string
+}
+
+// Postback предназначен для работы со структурами постбеков
+type Postback interface {
+	ClickID() string
+	Payout() string
+	ConversionStatus() string
+	ConversionStatus2() string
+	Currency() string
+	Events() []Event
+	ToOffer() string
 }

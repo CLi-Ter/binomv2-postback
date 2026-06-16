@@ -1,7 +1,7 @@
 package entity
 
 import (
-	binv2post "github.com/CLi-Ter/binomv2-postback/ver2"
+	binv2post "github.com/CLi-Ter/binomv2-postback"
 )
 
 type conversion struct {

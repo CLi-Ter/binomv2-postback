@@ -1,7 +1,7 @@
 package postback
 
 import (
-	binomPostback "github.com/CLi-Ter/binomv2-postback"
+	bpClient "github.com/CLi-Ter/binomv2-postback/client"
 	"github.com/CLi-Ter/binomv2-postback/entity"
 )
 
@@ -11,7 +11,7 @@ type Service interface {
 	SendEvent(clickID string, ev entity.Event) error
 	// SendPostback - отправляет постбек по клику.
 	// Создает конверсию или обновляет клик в зависимости от содержания запроса.
-	SendPostback(binomPostback.Request) error
+	SendPostback(bpClient.Request) error
 	// BuildPostbackRequest - строит и возвращает запрос.
-	BuildPostbackRequest(postback binomPostback.RequestBuilder) binomPostback.Request
+	BuildPostbackRequest(postback bpClient.RequestBuilder) bpClient.Request
 }

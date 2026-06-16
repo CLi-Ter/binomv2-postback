@@ -3,8 +3,8 @@ package entity
 import (
 	"strconv"
 
+	binv2post "github.com/CLi-Ter/binomv2-postback"
 	"github.com/CLi-Ter/binomv2-postback/click"
-	binv2post "github.com/CLi-Ter/binomv2-postback/ver2"
 )
 
 // Postback предназначен для работы со структурами постбеков

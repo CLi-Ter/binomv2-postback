@@ -9,9 +9,9 @@ import (
 	"net/url"
 	"strings"
 
+	ver2 "github.com/CLi-Ter/binomv2-postback"
 	"github.com/CLi-Ter/binomv2-postback/binom"
 	"github.com/CLi-Ter/binomv2-postback/entity"
-	ver2 "github.com/CLi-Ter/binomv2-postback/ver2"
 )
 
 type ClientOptions struct {
