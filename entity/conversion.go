@@ -1,24 +1,17 @@
 package entity
 
-// Conversion хранит данные по конверсии.
-// Payout - выплата, содержит сумму Value и валюту Currency (по-умолчанию - USD)
-type Conversion interface {
-	Payout() Payout
-	Status() string
-	Status2() string
-	HasStatus() bool
-	HasStatus2() bool
-	// ToOffer() string ??
-}
+import (
+	binv2post "github.com/CLi-Ter/binomv2-postback/ver2"
+)
 
 type conversion struct {
-	payout  Payout
+	payout  binv2post.Payout
 	status  *string
 	status2 *string
 	toOffer *string
 }
 
-func (conv *conversion) Payout() Payout {
+func (conv *conversion) Payout() binv2post.Payout {
 	return conv.payout
 }
 

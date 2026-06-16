@@ -1,18 +1,8 @@
 package entity
 
-const (
-	PAYOUT_CURRENCY_GEL = "gel"
-	PAYOUT_CURRENCY_EUR = "eur"
-	PAYOUT_CURRENCY_USD = "usd"
-	PAYOUT_CURRENCY_RUB = "rub"
+import (
+	binv2post "github.com/CLi-Ter/binomv2-postback/ver2"
 )
-
-type Payout interface {
-	HasValue() bool
-	HasCurrency() bool
-	Value() float64
-	Currency() string
-}
 
 type payout struct {
 	val      *float64
@@ -20,44 +10,44 @@ type payout struct {
 }
 
 // NewEmptyPayout создает пустой Payout
-func NewEmptyPayout() Payout {
+func NewEmptyPayout() binv2post.Payout {
 	return &payout{}
 }
 
 // NewCurrencyPayout создает Payout для валюты cur.
 // Значение val может быть равным nil,
 // тогда такой Payout должен обновлять лишь валюту выплаты.
-func NewCurrencyPayout(cur string, val *float64) Payout {
+func NewCurrencyPayout(cur string, val *float64) binv2post.Payout {
 	return &payout{
 		val:      val,
 		currency: &cur,
 	}
 }
 
-func NewGelPayout(val float64) Payout {
-	cur := PAYOUT_CURRENCY_GEL
+func NewGelPayout(val float64) binv2post.Payout {
+	cur := binv2post.PAYOUT_CURRENCY_GEL
 	return &payout{
 		val:      &val,
 		currency: &cur,
 	}
 }
 
-func NewEurPayout(val float64) Payout {
-	cur := PAYOUT_CURRENCY_EUR
+func NewEurPayout(val float64) binv2post.Payout {
+	cur := binv2post.PAYOUT_CURRENCY_EUR
 	return &payout{
 		val:      &val,
 		currency: &cur,
 	}
 }
 
-func NewUsdPayout(val float64) Payout {
+func NewUsdPayout(val float64) binv2post.Payout {
 	return &payout{
 		val: &val,
 	}
 }
 
-func NewRubPayout(val float64) Payout {
-	cur := PAYOUT_CURRENCY_RUB
+func NewRubPayout(val float64) binv2post.Payout {
+	cur := binv2post.PAYOUT_CURRENCY_RUB
 	return &payout{
 		val:      &val,
 		currency: &cur,
