@@ -20,6 +20,7 @@ type RequestBuilder interface {
 	WithToOffer(toOffer uint64) RequestBuilder
 	ClickID() string
 	Mode() string
+	WithSendClickOptions(sendClickOpts ...sendClickOpt) RequestBuilder
 }
 
 func newReq(clickID string) *request {
@@ -41,14 +42,19 @@ func NewRequestBuilderWithClickID(clickID string) RequestBuilder {
 	}
 }
 
+func (r *requestBuilder) ClickID() string {
+	return r.req.clickID
+}
+
 type requestBuilder struct {
 	req  *request
 	mode string
 }
 
 // Return request clickID
-func (r *requestBuilder) ClickID() string {
-	return r.req.clickID
+func (r *requestBuilder) WithSendClickOptions(sendClickOpts ...sendClickOpt) RequestBuilder {
+	r.req.sendClickOpts = sendClickOpts
+	return r
 }
 
 // Mode returns string name of postback mode
