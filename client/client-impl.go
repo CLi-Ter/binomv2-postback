@@ -35,22 +35,22 @@ func (cli *client) SetLogger(log Logger) {
 }
 
 // AddEvent добавляет к событию index единицу
-func (cli *client) AddEvent(clickID string, index uint8, opts ...sendClickOpt) error {
+func (cli *client) AddEvent(clickID string, index uint8, opts ...SendClickOpt) error {
 	return cli.SendEvent(clickID, binom.AddEvent(int8(index), 1), opts...)
 }
 
 // SubEvent вычитает у события index единицу
-func (cli *client) SubEvent(clickID string, index uint8, opts ...sendClickOpt) error {
+func (cli *client) SubEvent(clickID string, index uint8, opts ...SendClickOpt) error {
 	return cli.SendEvent(clickID, binom.AddEvent(int8(index), -1), opts...)
 }
 
 // SetupEvent устанавливает событие index в единицу
-func (cli *client) SetupEvent(clickID string, index uint8, opts ...sendClickOpt) error {
+func (cli *client) SetupEvent(clickID string, index uint8, opts ...SendClickOpt) error {
 	return cli.SendEvent(clickID, binom.Event(int8(index), 1), opts...)
 }
 
 // ResetEvent устанавливает событие index в ноль
-func (cli *client) ResetEvent(clickID string, index uint8, opts ...sendClickOpt) error {
+func (cli *client) ResetEvent(clickID string, index uint8, opts ...SendClickOpt) error {
 	return cli.SendEvent(clickID, binom.Event(int8(index), 0), opts...)
 }
 
@@ -90,7 +90,7 @@ type clickReq struct {
 // sendClick отправляет GET запрос в binom на обработчик клика.
 // Это может быть базовый клик, lp клик, клик по кампании
 // событие (если клик уже существует) или же конверсия.
-func (cli *client) sendClick(query string, opt ...sendClickOpt) error {
+func (cli *client) sendClick(query string, opt ...SendClickOpt) error {
 	clkReq := &clickReq{
 		method:       http.MethodGet,
 		clickBaseURL: cli.clickBaseURL,
@@ -153,7 +153,7 @@ func (cli *client) sendClick(query string, opt ...sendClickOpt) error {
 }
 
 // SendEvents обновляет клик событиями (конверсия не генерируется)
-func (cli *client) SendEvents(clickID string, events entity.Events, opts ...sendClickOpt) error {
+func (cli *client) SendEvents(clickID string, events entity.Events, opts ...SendClickOpt) error {
 	eventParams := events.URLParams()
 	// не посылать пустые события !!!
 	// если опция SendEmptyUpdates не включена,
@@ -178,7 +178,7 @@ func (cli *client) SendEvents(clickID string, events entity.Events, opts ...send
 
 // SendEvent отправляет (postback.AddEvent) или обновляет (postback.SetEvent)
 // событие с номером 1 <= index <= 30.
-func (cli *client) SendEvent(clickID string, event ver2.Event, opts ...sendClickOpt) error {
+func (cli *client) SendEvent(clickID string, event ver2.Event, opts ...SendClickOpt) error {
 	events := entity.Events{}
 	if err := events.Set(event, false); err != nil {
 		return err
@@ -187,7 +187,7 @@ func (cli *client) SendEvent(clickID string, event ver2.Event, opts ...sendClick
 	return cli.SendEvents(clickID, events, opts...)
 }
 
-func (cli *client) SendPostbackRequest(postback Request, opts ...sendClickOpt) error {
+func (cli *client) SendPostbackRequest(postback Request, opts ...SendClickOpt) error {
 	// если это не конверсия, то отправляем через SendEvents, чтобы не триггерить postback в биноме
 	if !postback.IsConversion() {
 		return cli.SendEvents(postback.ClickID(), postback.Events(), opts...)
@@ -200,7 +200,7 @@ func (cli *client) SendPostbackRequest(postback Request, opts ...sendClickOpt) e
 // не обновляет статус конверсии, если status=nil
 // не обнволяет выплату, если payout=nil
 // во время конверсии можно добавить-заменить события через events
-func (cli *client) SendPostback(clickID string, status *string, payout *float64, events entity.Events, opts ...sendClickOpt) error {
+func (cli *client) SendPostback(clickID string, status *string, payout *float64, events entity.Events, opts ...SendClickOpt) error {
 	q := make(url.Values)
 	q.Add("cnv_id", clickID)
 	if status != nil {

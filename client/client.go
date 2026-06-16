@@ -27,16 +27,16 @@ type Request interface {
 
 type EventClient interface {
 	// отправка события
-	SendEvent(clickID string, event bp.Event, opts ...sendClickOpt) error
-	SendEvents(clickID string, events entity.Events, opts ...sendClickOpt) error
+	SendEvent(clickID string, event bp.Event, opts ...SendClickOpt) error
+	SendEvents(clickID string, events entity.Events, opts ...SendClickOpt) error
 	// работа с счетчиком события
-	AddEvent(clickID string, index uint8, opts ...sendClickOpt) error
-	SubEvent(clickID string, index uint8, opts ...sendClickOpt) error
-	SetupEvent(clickID string, index uint8, opts ...sendClickOpt) error
-	ResetEvent(clickID string, index uint8, opts ...sendClickOpt) error
+	AddEvent(clickID string, index uint8, opts ...SendClickOpt) error
+	SubEvent(clickID string, index uint8, opts ...SendClickOpt) error
+	SetupEvent(clickID string, index uint8, opts ...SendClickOpt) error
+	ResetEvent(clickID string, index uint8, opts ...SendClickOpt) error
 }
 
 type PostbackClient interface {
-	SendPostbackRequest(postback Request, opts ...sendClickOpt) error
-	SendPostback(clickID string, status *string, payout *float64, events entity.Events, opts ...sendClickOpt) error
+	SendPostbackRequest(postback Request, opts ...SendClickOpt) error
+	SendPostback(clickID string, status *string, payout *float64, events entity.Events, opts ...SendClickOpt) error
 }

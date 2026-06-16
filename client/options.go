@@ -7,9 +7,10 @@ import (
 	"github.com/CLi-Ter/binomv2-postback/entity"
 )
 
-type sendClickOpt func(cli *client, clkReq *clickReq) error
+type SendClickOptions []SendClickOpt
+type SendClickOpt func(cli *client, clkReq *clickReq) error
 
-func OptWithClickBaseURL(clickBaseURL string) sendClickOpt {
+func OptWithClickBaseURL(clickBaseURL string) SendClickOpt {
 	return func(cli *client, clkReq *clickReq) error {
 		if clkReq != nil && clkReq.log != nil {
 			clkReq.log.Debugf("Setup click request with clickBaseURL option: %s", clickBaseURL)
@@ -20,7 +21,7 @@ func OptWithClickBaseURL(clickBaseURL string) sendClickOpt {
 	}
 }
 
-func OptWithHost(host string) sendClickOpt {
+func OptWithHost(host string) SendClickOpt {
 	return func(cli *client, clkReq *clickReq) error {
 		if clkReq != nil && clkReq.log != nil {
 			clkReq.log.Debugf("setup click request with host option: %s", host)
@@ -37,7 +38,7 @@ func OptWithHost(host string) sendClickOpt {
 	}
 }
 
-func OptWithDryRun(dryRun bool) sendClickOpt {
+func OptWithDryRun(dryRun bool) SendClickOpt {
 	return func(cli *client, clkReq *clickReq) error {
 		if clkReq != nil && clkReq.log != nil {
 			clkReq.log.Debugf("setup click request with dryRun option: %b", dryRun)
@@ -48,11 +49,11 @@ func OptWithDryRun(dryRun bool) sendClickOpt {
 	}
 }
 
-func OptDryRun() sendClickOpt {
+func OptDryRun() SendClickOpt {
 	return OptWithDryRun(true)
 }
 
-func OptWithPostbackLevel(lvl entity.PostbackLevel) sendClickOpt {
+func OptWithPostbackLevel(lvl entity.PostbackLevel) SendClickOpt {
 	return func(cli *client, clkReq *clickReq) error {
 		clkReq.pbLvl = lvl
 
@@ -60,7 +61,7 @@ func OptWithPostbackLevel(lvl entity.PostbackLevel) sendClickOpt {
 	}
 }
 
-func OptWithContext(ctx context.Context) sendClickOpt {
+func OptWithContext(ctx context.Context) SendClickOpt {
 	return func(cli *client, clkReq *clickReq) error {
 		if clkReq != nil && clkReq.log != nil {
 			clkReq.log.Debugf("setup click request with context option: %v", ctx)
@@ -71,12 +72,10 @@ func OptWithContext(ctx context.Context) sendClickOpt {
 	}
 }
 
-func OptWithLogger(logger Logger) sendClickOpt {
+func OptWithLogger(logger Logger) SendClickOpt {
 	return func(cli *client, clkReq *clickReq) error {
 		clkReq.log = logger
 
 		return nil
 	}
 }
-
-type SendClickOptions []sendClickOpt

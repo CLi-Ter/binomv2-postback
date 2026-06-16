@@ -7,18 +7,6 @@ import (
 	"github.com/CLi-Ter/binomv2-postback/entity"
 )
 
-type Request interface {
-	entity.Postback
-
-	Params() []string
-	URLParam() string
-	String() string
-	IsConversion() bool
-	IsDisabledPostback() bool
-
-	SendClickOptions() SendClickOptions
-}
-
 type request struct {
 	clickID         string
 	payout          *float64
@@ -29,7 +17,7 @@ type request struct {
 	events          entity.Events
 	disablePostback bool
 	toOffer         *uint64
-	sendClickOpts   []sendClickOpt
+	sendClickOpts   []SendClickOpt
 }
 
 func (p *request) ClickID() string {

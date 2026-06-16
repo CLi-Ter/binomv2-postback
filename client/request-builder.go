@@ -20,13 +20,13 @@ type RequestBuilder interface {
 	WithToOffer(toOffer uint64) RequestBuilder
 	ClickID() string
 	Mode() string
-	WithSendClickOptions(sendClickOpts ...sendClickOpt) RequestBuilder
+	WithSendClickOptions(sendClickOpts ...SendClickOpt) RequestBuilder
 }
 
 func newReq(clickID string) *request {
 	return &request{
 		clickID:       clickID,
-		sendClickOpts: make([]sendClickOpt, 0),
+		sendClickOpts: make([]SendClickOpt, 0),
 	}
 }
 
@@ -52,7 +52,7 @@ type requestBuilder struct {
 }
 
 // Return request clickID
-func (r *requestBuilder) WithSendClickOptions(sendClickOpts ...sendClickOpt) RequestBuilder {
+func (r *requestBuilder) WithSendClickOptions(sendClickOpts ...SendClickOpt) RequestBuilder {
 	r.req.sendClickOpts = sendClickOpts
 	return r
 }
