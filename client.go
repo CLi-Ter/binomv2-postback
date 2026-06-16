@@ -37,14 +37,19 @@ type Client interface {
 	SetLogger(log Logger)
 }
 
-type client struct {
-	dryRun               bool
-	clickBaseURL         string  // Базовый URL для клика в трекере https://binom.tracker/click
-	apiKey               string  // API-ключ от Binom
-	updKey               *string // UPDKey из настроек Binom
-	log                  Logger
-	dontSendEmptyUpdates bool
+type ClientOptions struct {
+	SendEmptyUpdates bool
+	DryRun           bool // Режим без отправки HTTP-запроса
+}
 
+type client struct {
+	clickBaseURL string  // Базовый URL для клика в трекере https://binom.tracker/click
+	apiKey       string  // API-ключ от Binom
+	updKey       *string // UPDKey из настроек Binom
+
+	opt ClientOptions
+
+	log        Logger
 	httpClient *http.Client
 }
 
@@ -85,14 +90,12 @@ func NewClient(clickBaseURL string, apiKey string, updKey string) Client {
 		apiKey:       apiKey,
 		updKey:       uk,
 
-		dontSendEmptyUpdates: true,
-
 		httpClient: &http.Client{},
 	}
 }
 
 func (cli *client) DryRun() {
-	cli.dryRun = true
+	cli.opt.DryRun = true
 }
 
 type sendClickOpt func(cli *client, clkReq *clickReq) error
@@ -159,6 +162,14 @@ func OptWithContext(ctx context.Context) sendClickOpt {
 	}
 }
 
+func OptWithLogger(logger Logger) sendClickOpt {
+	return func(cli *client, clkReq *clickReq) error {
+		clkReq.log = logger
+
+		return nil
+	}
+}
+
 type SendClickOptions []sendClickOpt
 
 type clickReq struct {
@@ -180,20 +191,25 @@ func (cli *client) sendClick(query string, opt ...sendClickOpt) error {
 	clkReq := &clickReq{
 		method:       http.MethodGet,
 		clickBaseURL: cli.clickBaseURL,
-		dryRun:       cli.dryRun,
+		dryRun:       cli.opt.DryRun,
 		body:         nil,
 		ctx:          nil,
 		log:          cli.log,
 	}
+	// Применяем опции клика на запрос
 	for _, f := range opt {
 		if err := f(cli, clkReq); err != nil {
 			return err
 		}
 	}
 
+	// Проверка уровня отправки постбека для этого клика.
+	// Если клик нельзя отправлять, то возвращаем nil
 	if !clkReq.pbLvl.CanPostback() {
 		return nil
 	}
+	// Если уровень отправки клика только в трекер, то добавляем опцию
+	// disable_postback к запросу
 	// TODO: this is all?
 	if clkReq.pbLvl == PB_LVL_NO_TS {
 		query = query + "&disable_postback=1"
@@ -204,18 +220,19 @@ func (cli *client) sendClick(query string, opt ...sendClickOpt) error {
 	if err != nil {
 		return err
 	}
+	// Если в опциях есть контекст, то добавляем его к запросу
 	if clkReq.ctx != nil {
 		req = req.WithContext(clkReq.ctx)
 	}
+
 	// добавляем параметры, в зависимости от них Binom понимает, что мы присылаем
 	req.URL.RawQuery = query
-	if clkReq.log != nil {
-		clkReq.log.Debugf("Send binom request: %v", req)
-	}
-
 	if clkReq.dryRun {
 		fmt.Println("dryRun req URL:", req.URL.String())
 		return nil
+	}
+	if clkReq.log != nil {
+		clkReq.log.Infof("Send binom request: %v", req.URL.String())
 	}
 
 	// Отправляем запрос, ожидаем 200-ый ответ
@@ -226,47 +243,23 @@ func (cli *client) sendClick(query string, opt ...sendClickOpt) error {
 	defer response.Body.Close()
 
 	if clkReq.log != nil {
-		clkReq.log.Infof("Binom request: %v Response: %v", req, response)
+		clkReq.log.Debugf("Binom request: %v Response: %v", req, response)
 	}
 
-	var body []byte
-	_, err = response.Body.Read(body)
-	if err != nil {
-		return fmt.Errorf("failed to read response body: %v", err)
-	}
-
-	// Получив ошибку, пытаемся прочесть содержимое ответа и вернуть его как ошибку
-	if response.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to send request, status code: %d, response %s", response.StatusCode, string(body))
-	}
-
-	// Binom сейчас возвращает 200 даже при ошибках
-	// При ошибках внутри тела ответа status=fail
-	var resp struct {
-		Status  string `json:"status"`
-		Message string `json:"message"`
-	}
-
-	if len(body) > 0 { // Проверяем, что тело не пустое
-		if err := json.Unmarshal(body, &resp); err != nil {
-			return fmt.Errorf("unmarshal response body failed: %v", err)
-		} else {
-			if resp.Status == "fail" {
-				return fmt.Errorf("postback request failed with error: %s", resp.Message)
-			}
-		}
-	}
-
-	return nil
+	return parsePostbackResponse(response)
 }
 
 // SendEvents обновляет клик событиями (конверсия не генерируется)
 func (cli *client) SendEvents(clickID string, events entity.Events, opts ...sendClickOpt) error {
 	eventParams := events.URLParams()
 	// не посылать пустые события !!!
-	if cli.dontSendEmptyUpdates {
+	// если опция SendEmptyUpdates не включена,
+	// то производим проверку значений событий на пустоту перед отправкой.
+	if !cli.opt.SendEmptyUpdates {
 		if eventParams == "" {
-			cli.log.Debugf("SendEvents>cli.dontSendEmptyUpdates: empty update")
+			if cli.log != nil {
+				cli.log.Debugf("SendEvents>cli.opt.SendEmptyUpdates: empty update")
+			}
 			return nil
 		}
 	}
@@ -343,4 +336,40 @@ func (cli *client) SetLPClick(clickID string) error {
 // SendClick производит клик по офферу.
 func (cli *client) SendClick() error {
 	panic("not implemented. coming in v0.9")
+}
+
+func parsePostbackResponse(resp *http.Response) error {
+	var body []byte
+	_, err := resp.Body.Read(body)
+	if err != nil {
+		return fmt.Errorf("failed to read response body: %v", err)
+	}
+
+	// Получив ошибку, пытаемся прочесть содержимое ответа и вернуть его как ошибку
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to send request, status code: %d, response %s", resp.StatusCode, string(body))
+	}
+
+	// Binom сейчас возвращает 200 даже при ошибках
+	// При ошибках внутри тела ответа status=fail
+	return parsePostbackResponseBody(body)
+}
+
+func parsePostbackResponseBody(body []byte) error {
+	var resp struct {
+		Status  string `json:"status"`
+		Message string `json:"message"`
+	}
+
+	if len(body) > 0 { // Проверяем, что тело не пустое
+		if err := json.Unmarshal(body, &resp); err != nil {
+			return fmt.Errorf("unmarshal response body failed: %v", err)
+		} else {
+			if resp.Status == "fail" {
+				return fmt.Errorf("postback request failed with error: %s", resp.Message)
+			}
+		}
+	}
+
+	return nil
 }
