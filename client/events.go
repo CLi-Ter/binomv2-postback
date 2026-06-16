@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"strings"
 
-	ver2 "github.com/CLi-Ter/binomv2-postback"
+	bp "github.com/CLi-Ter/binomv2-postback"
 )
 
 // События в трекере (всего их 30)
-type Events [30]ver2.Event
+type Events [30]Event
 
 // Params возвращает все события как параметры
 func (e *Events) Params() []string {
@@ -35,7 +35,7 @@ func (e *Events) URLParams() string {
 
 // Set проверяет наличие события в массиве и устанавливает конкретное событие index=X
 // если force=true, либо выбрасывает ошибку (TODO: конкретная ошибка)
-func (e *Events) Set(ev ver2.Event, force bool) error {
+func (e *Events) Set(ev bp.Event, force bool) error {
 	index := ev.Index()
 	if int(index) > cap(e) {
 		return fmt.Errorf("event index out of range. Max: %d", cap(e))

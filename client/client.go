@@ -25,6 +25,13 @@ type Request interface {
 	SendClickOptions() SendClickOptions
 }
 
+// Event представляет собой событие в биноме. https://docs.binom.org/events-v2.php
+// всего событий в BinomV2 от 1 до 30 далее X. Их значение можно обновлять SetEvent или складывать AddEvent.
+// в URL события имеют вид eventX=INT или add_eventX=INT
+type Event interface {
+	bp.Event
+}
+
 type EventClient interface {
 	// отправка события
 	SendEvent(clickID string, event bp.Event, opts ...SendClickOpt) error
