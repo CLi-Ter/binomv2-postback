@@ -1,24 +1,11 @@
-package binomv2postback
+package client
 
 import (
 	"strconv"
 	"strings"
-)
 
-type Request interface {
-	ClickID() string
-	Payout() string
-	ConversionStatus() string
-	ConversionStatus2() string
-	Currency() string
-	Events() Events
-	Params() []string
-	URLParam() string
-	String() string
-	IsConversion() bool
-	IsDisabledPostback() bool
-	ToOffer() string
-}
+	entity "github.com/CLi-Ter/binomv2-postback"
+)
 
 type request struct {
 	clickID         string
@@ -27,9 +14,10 @@ type request struct {
 	cnvStatus2      *string
 	currency        *string
 	isCnv           bool
-	events          Events
+	events          entity.Events
 	disablePostback bool
 	toOffer         *uint64
+	sendClickOpts   []SendClickOpt
 }
 
 func (p *request) ClickID() string {
@@ -68,7 +56,7 @@ func (p *request) Currency() string {
 	return *p.currency
 }
 
-func (p *request) Events() Events {
+func (p *request) Events() entity.Events {
 	return p.events
 }
 
@@ -91,6 +79,10 @@ func (p *request) ToOffer() string {
 	}
 
 	return strconv.FormatUint(*p.toOffer, 10)
+}
+
+func (p *request) SendClickOptions() SendClickOptions {
+	return p.sendClickOpts
 }
 
 func (p *request) Params() []string {

@@ -1,4 +1,4 @@
-package binomv2postback
+package client
 
 type Logger interface {
 	Info(args ...interface{})

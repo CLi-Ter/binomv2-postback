@@ -1,12 +1,16 @@
-package binomv2postback
+package client
 
-import "strings"
+import (
+	"strings"
+
+	entity "github.com/CLi-Ter/binomv2-postback"
+)
 
 // RequestBuilder allows you to construct Request interface
 type RequestBuilder interface {
 	Request(clickID string) Request
 	WithPayout(payout float64) RequestBuilder
-	WithEvents(events Events) RequestBuilder
+	WithEvents(events entity.Events) RequestBuilder
 	WithStatus(cnvStatus string, cnvStatus2 ...string) RequestBuilder
 	WithPostbackMode(mode string) RequestBuilder
 	DropStatus(keepPrimary bool) RequestBuilder
@@ -16,20 +20,30 @@ type RequestBuilder interface {
 	WithToOffer(toOffer uint64) RequestBuilder
 	ClickID() string
 	Mode() string
+	WithSendClickOptions(sendClickOpts ...SendClickOpt) RequestBuilder
+}
+
+func newReq(clickID string) *request {
+	return &request{
+		clickID:       clickID,
+		sendClickOpts: make([]SendClickOpt, 0),
+	}
 }
 
 func NewRequestBuilder() RequestBuilder {
 	return &requestBuilder{
-		req: &request{},
+		req: newReq(""),
 	}
 }
 
 func NewRequestBuilderWithClickID(clickID string) RequestBuilder {
 	return &requestBuilder{
-		req: &request{
-			clickID: clickID,
-		},
+		req: newReq(clickID),
 	}
+}
+
+func (r *requestBuilder) ClickID() string {
+	return r.req.clickID
 }
 
 type requestBuilder struct {
@@ -38,8 +52,9 @@ type requestBuilder struct {
 }
 
 // Return request clickID
-func (r *requestBuilder) ClickID() string {
-	return r.req.clickID
+func (r *requestBuilder) WithSendClickOptions(sendClickOpts ...SendClickOpt) RequestBuilder {
+	r.req.sendClickOpts = sendClickOpts
+	return r
 }
 
 // Mode returns string name of postback mode
@@ -56,7 +71,7 @@ func (r *requestBuilder) Request(clickID string) Request {
 }
 
 // WithEvents add click events to builded Request
-func (r *requestBuilder) WithEvents(events Events) RequestBuilder {
+func (r *requestBuilder) WithEvents(events entity.Events) RequestBuilder {
 	r.req.events = events
 	return r
 }
